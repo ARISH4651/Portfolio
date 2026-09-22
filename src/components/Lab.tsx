@@ -65,13 +65,21 @@ export default function Lab() {
     gsap.set(card, { xPercent: -50, yPercent: -50, scale: 0.85, autoAlpha: 0 });
     const xTo = gsap.quickTo(card, "x", { duration: 0.5, ease: "expo.out" });
     const yTo = gsap.quickTo(card, "y", { duration: 0.5, ease: "expo.out" });
-    const move = (e: MouseEvent) => {
-      const r = section.getBoundingClientRect();
-      xTo(e.clientX - r.left);
-      yTo(e.clientY - r.top);
+    let rect = section.getBoundingClientRect();
+    const refreshRect = () => {
+      rect = section.getBoundingClientRect();
     };
+    const move = (e: MouseEvent) => {
+      xTo(e.clientX - rect.left);
+      yTo(e.clientY - rect.top);
+    };
+    const enter = () => refreshRect();
+    section.addEventListener("mouseenter", enter);
     section.addEventListener("mousemove", move, { passive: true });
-    return () => section.removeEventListener("mousemove", move);
+    return () => {
+      section.removeEventListener("mouseenter", enter);
+      section.removeEventListener("mousemove", move);
+    };
   }, []);
 
   const showPreview = (globalIndex: number) => {
@@ -118,7 +126,7 @@ export default function Lab() {
             role="tab"
             aria-selected={filter === f}
             onClick={() => setFilter(f)}
-            className={`rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-all duration-200 ${
+            className={`rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-[background-color,border-color,color] duration-200 ${
               filter === f
                 ? "border-[#C8F31D] bg-[#C8F31D] text-[#151515] font-semibold"
                 : "border-white/20 text-white/70 hover:border-white/50 hover:text-white"
@@ -137,7 +145,7 @@ export default function Lab() {
               <span className="col-span-2 font-mono text-xs opacity-50 group-hover:text-[#C8F31D] md:col-span-1">
                 {item.n}
               </span>
-              <span className="col-span-10 text-[clamp(1.1rem,2.2vw,1.6rem)] font-medium tracking-tight transition-all duration-300 group-hover:translate-x-2 group-hover:text-[#C8F31D] md:col-span-5 md:group-hover:translate-x-3">
+              <span className="col-span-10 text-[clamp(1.1rem,2.2vw,1.6rem)] font-medium tracking-tight transition-[transform,color] duration-300 group-hover:translate-x-2 group-hover:text-[#C8F31D] md:col-span-5 md:group-hover:translate-x-3">
                 {item.name}
               </span>
               <span className="col-span-6 col-start-3 font-mono text-[11px] uppercase tracking-[0.16em] opacity-50 md:col-span-4 md:col-start-auto">
@@ -150,7 +158,7 @@ export default function Lab() {
             </>
           );
           const cls =
-            "lab-row group grid grid-cols-12 items-baseline gap-2 border-b border-white/15 py-4.5 md:py-5 transition-all duration-300 hover:bg-white/[0.04] hover:py-5.5 md:hover:py-6";
+            "lab-row group grid grid-cols-12 items-baseline gap-2 border-b border-white/15 py-4.5 md:py-5 transition-[background-color,padding] duration-300 hover:bg-white/[0.04] hover:py-5.5 md:hover:py-6";
           return item.anchor ? (
             <a
               key={item.n}

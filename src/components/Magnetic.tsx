@@ -21,19 +21,25 @@ export default function Magnetic({ children, className, strength = 0.35, href, o
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const xTo = gsap.quickTo(el, "x", { duration: 0.4, ease: "expo.out" });
     const yTo = gsap.quickTo(el, "y", { duration: 0.4, ease: "expo.out" });
+    let rect = el.getBoundingClientRect();
+    const refreshRect = () => {
+      rect = el.getBoundingClientRect();
+    };
+    const enter = () => refreshRect();
     const move = (e: Event) => {
       const me = e as MouseEvent;
-      const r = el.getBoundingClientRect();
-      xTo((me.clientX - (r.left + r.width / 2)) * strength);
-      yTo((me.clientY - (r.top + r.height / 2)) * strength);
+      xTo((me.clientX - (rect.left + rect.width / 2)) * strength);
+      yTo((me.clientY - (rect.top + rect.height / 2)) * strength);
     };
     const leave = () => {
       xTo(0);
       yTo(0);
     };
+    el.addEventListener("mouseenter", enter);
     el.addEventListener("mousemove", move);
     el.addEventListener("mouseleave", leave);
     return () => {
+      el.removeEventListener("mouseenter", enter);
       el.removeEventListener("mousemove", move);
       el.removeEventListener("mouseleave", leave);
     };

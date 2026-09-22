@@ -13,19 +13,32 @@ gsap.registerPlugin(ScrollTrigger);
  */
 function ProjectDiagram({ project }: { project: Tier1Project }) {
   const p = project;
+  const projectWebp = p.image?.replace(/\.jpg$/i, ".webp");
+  const projectWebpSmall = p.image?.replace(/\.jpg$/i, "-640.webp");
 
   return (
     <div className="relative w-full h-full min-h-[380px] md:min-h-[460px] rounded-lg border border-white/15 bg-[#0e0e0e] overflow-hidden flex flex-col justify-between p-5 md:p-7 shadow-2xl select-none">
       {/* Cinematic project image — absolute background layer */}
       {p.image && (
         <div className="absolute inset-0 z-0 rounded-lg overflow-hidden">
-          <img
-            src={p.image}
-            alt={`${p.titleA} ${p.titleB} visual`}
-            className="w-full h-full object-cover object-center opacity-30"
-            loading="lazy"
-            decoding="async"
-          />
+          <picture>
+            {projectWebp && (
+              <source
+                type="image/webp"
+                srcSet={`${projectWebpSmall} 640w, ${projectWebp} 1264w`}
+                sizes="(max-width: 767px) calc(100vw - 3rem), 45vw"
+              />
+            )}
+            <img
+              src={p.image}
+              alt={`${p.titleA} ${p.titleB} visual`}
+              width="1264"
+              height="848"
+              className="h-full w-full object-cover object-center opacity-30"
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
           {/* Gradient overlay: dark edges + bottom fade for text readability */}
           <div
             className="absolute inset-0"
@@ -38,8 +51,10 @@ function ProjectDiagram({ project }: { project: Tier1Project }) {
       )}
       {/* Background ambient lighting and blueprint grid */}
       <div
-        className="glow absolute -top-12 -right-12 h-64 w-64 rounded-full opacity-35 blur-3xl pointer-events-none z-[1]"
-        style={{ background: p.accent }}
+        className="glow absolute -top-12 -right-12 h-64 w-64 rounded-full opacity-35 pointer-events-none z-[1]"
+        style={{
+          background: `radial-gradient(circle, ${p.accent} 0%, transparent 70%)`,
+        }}
       />
       <div className="grid-overlay opacity-60 pointer-events-none z-[1]" />
 
@@ -268,6 +283,7 @@ export default function SelectedWork() {
         let active = 0;
         const N = projects.length; // 4
 
+        const skewSetter = gsap.quickSetter(track, "skewX", "deg");
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
@@ -281,6 +297,7 @@ export default function SelectedWork() {
             invalidateOnRefresh: true,
             onUpdate: (self) => {
               const p = self.progress;
+              skewSetter(clamp(velocityBus.value * -0.25, -2.5, 2.5));
               const idx = Math.min(N - 1, Math.floor(p * N));
 
               if (counter.current) {
@@ -313,20 +330,11 @@ export default function SelectedWork() {
         // Parallax image drift
         tl.fromTo(".panel-vis-wrap", { x: 30 }, { x: -30, duration: projects.length }, 0);
 
-        // Velocity skew
-        const skewSetter = gsap.quickSetter(track, "skewX", "deg");
-        let skew = 0;
-        const tick = () => {
-          const sTarget = clamp(velocityBus.value * -0.25, -2.5, 2.5);
-          skew += (sTarget - skew) * 0.09;
-          skewSetter(Math.abs(skew) > 0.04 ? skew : 0);
-          if (Math.abs(skew) <= 0.04) skew = 0;
-        };
-        gsap.ticker.add(tick);
-
         // Cursor hover interactive depth
         const over = (e: MouseEvent) => {
-          const scene = (e.target as HTMLElement).closest<HTMLElement>(".work-panel");
+          const target = e.target as HTMLElement;
+          const scene = target.closest<HTMLElement>(".work-panel");
+          if (!scene || (e.relatedTarget instanceof Node && scene.contains(e.relatedTarget))) return;
           panels.forEach((pn) => {
             const on = pn === scene;
             const vis = pn.querySelector(".panel-vis-wrap");
@@ -339,7 +347,6 @@ export default function SelectedWork() {
         const section = root.current!;
 
         return () => {
-          gsap.ticker.remove(tick);
           section.removeEventListener("mouseover", over);
         };
       }, root);

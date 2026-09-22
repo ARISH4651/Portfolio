@@ -31,30 +31,18 @@ export default function Architecture() {
           scrollTrigger: { trigger: ".pipe-track", start: "top 72%", end: "bottom 55%", scrub: 1 },
         });
       }
-      const n = systemChain.length;
       gsap.utils.toArray<HTMLElement>(".pipe-node").forEach((node, i) => {
-        gsap.fromTo(
-          node,
-          { opacity: 0.22 },
-          {
-            opacity: 1,
-            ease: "none",
-            scrollTrigger: { trigger: ".pipe-track", start: `top ${72 - i * 3}%`, end: `top ${58 - i * 3}%`, scrub: 1 },
-          },
-        );
         const dot = node.querySelector(".node-dot");
-        if (dot) {
-          gsap.fromTo(
-            dot,
-            { scale: 0.55 },
-            {
-              scale: 1.4,
-              ease: "none",
-              scrollTrigger: { trigger: ".pipe-track", start: `top ${72 - i * 3}%`, end: `top ${58 - i * 3}%`, scrub: 1 },
-            },
-          );
-        }
-        void n;
+        const nodeTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: ".pipe-track",
+            start: `top ${72 - i * 3}%`,
+            end: `top ${58 - i * 3}%`,
+            scrub: 1,
+          },
+        });
+        nodeTl.fromTo(node, { opacity: 0.22 }, { opacity: 1, ease: "none" });
+        if (dot) nodeTl.fromTo(dot, { scale: 0.55 }, { scale: 1.4, ease: "none" }, 0);
       });
       ScrollTrigger.create({
         trigger: ".pipe-track",

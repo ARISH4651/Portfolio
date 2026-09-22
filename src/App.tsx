@@ -64,6 +64,8 @@ export default function App() {
     return () => {
       document.removeEventListener("click", onClick);
       gsap.ticker.remove(raf);
+      velocityBus.value = 0;
+      velocityBus.intensity = 0;
       lenis.destroy();
       lenisRef.current = null;
     };

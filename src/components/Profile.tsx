@@ -92,17 +92,20 @@ export default function Profile() {
           },
         );
 
-        // Subtle scroll-driven parallax
-        gsap.to(portraitRef.current, {
-          yPercent: -8,
-          ease: "none",
-          scrollTrigger: {
-            trigger: root.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 1.2,
-          },
-        });
+        // Keep the continuous parallax for precise pointers; touch devices use
+        // the same entrance animation without the extra scroll work.
+        if (window.matchMedia("(pointer: fine)").matches) {
+          gsap.to(portraitRef.current, {
+            yPercent: -8,
+            ease: "none",
+            scrollTrigger: {
+              trigger: root.current,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: 1.2,
+            },
+          });
+        }
       }
 
       // Smooth cursor parallax on fine pointers
@@ -120,43 +123,39 @@ export default function Profile() {
           ease: "power3.out",
         });
 
-        const onMove = (e: MouseEvent) => {
-          const rect = section.getBoundingClientRect();
+        const scaleTo = gsap.quickTo(imgRef.current, "scale", {
+          duration: 0.8,
+          ease: "power3.out",
+        });
+        let rect = section.getBoundingClientRect();
+        const refreshRect = () => {
+          rect = section.getBoundingClientRect();
+        };
 
+        const onMove = (e: MouseEvent) => {
           const nx = (e.clientX - rect.left) / rect.width - 0.5;
           const ny = (e.clientY - rect.top) / rect.height - 0.5;
 
           xTo(nx * 14);
           yTo(ny * 10);
 
-          if (imgRef.current) {
-            gsap.to(imgRef.current, {
-              scale: 1.015,
-              duration: 0.8,
-              ease: "power3.out",
-              overwrite: "auto",
-            });
-          }
+          scaleTo(1.015);
         };
+        const onEnter = () => refreshRect();
 
         const onLeave = () => {
           xTo(0);
           yTo(0);
 
-          if (imgRef.current) {
-            gsap.to(imgRef.current, {
-              scale: 1,
-              duration: 0.8,
-              ease: "power3.out",
-              overwrite: "auto",
-            });
-          }
+          scaleTo(1);
         };
 
+        section.addEventListener("mouseenter", onEnter);
         section.addEventListener("mousemove", onMove, { passive: true });
         section.addEventListener("mouseleave", onLeave);
 
         return () => {
+          section.removeEventListener("mouseenter", onEnter);
           section.removeEventListener("mousemove", onMove);
           section.removeEventListener("mouseleave", onLeave);
         };
@@ -215,13 +214,23 @@ export default function Profile() {
                   "linear-gradient(to bottom, black 72%, transparent 100%)",
               }}
             >
-              <img
-                ref={imgRef}
-                src="/portrait_nobg.png"
-                alt="Arish K — AI & Data Science Engineer"
-                className="relative block h-auto w-full object-contain object-bottom filter contrast-[1.08] brightness-[0.98] transition-transform will-change-transform"
-                loading="eager"
-              />
+              <picture>
+                <source
+                  type="image/webp"
+                  srcSet="/portrait_nobg-768.webp 768w"
+                  sizes="(max-width: 1023px) min(90vw, 420px), 460px"
+                />
+                <img
+                  ref={imgRef}
+                  src="/portrait_nobg.png"
+                  alt="Arish K — AI & Data Science Engineer"
+                  width="768"
+                  height="1028"
+                  className="relative block h-auto w-full object-contain object-bottom filter contrast-[1.08] brightness-[0.98] transition-transform will-change-transform"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </picture>
             </div>
           </div>
         </div>
@@ -332,7 +341,7 @@ export default function Profile() {
           {focusAreas.map((f) => (
             <div
               key={f.n}
-              className="profile-rise group grid gap-4 py-6 transition-all duration-300 hover:pl-2 md:grid-cols-12 md:items-baseline"
+              className="profile-rise group grid gap-4 py-6 transition-[transform] duration-300 hover:pl-2 md:grid-cols-12 md:items-baseline"
             >
               <div className="flex items-center gap-3 md:col-span-1">
                 <span className="font-mono text-xs font-semibold text-[#5A7300]">

@@ -56,7 +56,7 @@ export default function Stack() {
         {stackGroups.map((g, i) => (
           <div
             key={g.label}
-            className="stack-row group grid grid-cols-12 items-baseline gap-4 border-b border-[#171717]/15 py-6 md:py-7 transition-all duration-300 hover:bg-black/[0.02] hover:pl-2"
+            className="stack-row group grid grid-cols-12 items-baseline gap-4 border-b border-[#171717]/15 py-6 md:py-7 transition-[background-color,padding] duration-300 hover:bg-black/[0.02] hover:pl-2"
           >
             <div className="col-span-12 md:col-span-3 flex items-center gap-2">
               <span className="font-mono text-xs text-[#5A7300] font-semibold">0{i + 1}</span>
@@ -68,7 +68,7 @@ export default function Stack() {
               {g.items.map((item) => (
                 <span
                   key={item}
-                  className="rounded-md border border-[#171717]/15 bg-white/50 px-3 py-1.5 font-mono text-xs font-medium uppercase tracking-[0.12em] text-[#151515] transition-all duration-200 group-hover:border-[#171717]/35 hover:bg-[#151515] hover:text-[#C8F31D]"
+                  className="rounded-md border border-[#171717]/15 bg-white/50 px-3 py-1.5 font-mono text-xs font-medium uppercase tracking-[0.12em] text-[#151515] transition-[background-color,border-color,color] duration-200 group-hover:border-[#171717]/35 hover:bg-[#151515] hover:text-[#C8F31D]"
                 >
                   {item}
                 </span>

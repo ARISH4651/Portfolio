@@ -151,10 +151,18 @@ export default function Hero({ ready }: Props) {
     const fine = window.matchMedia("(pointer: fine)").matches;
 
     const ctx = gsap.context(() => {
+      const skewSetter = gsap.quickSetter(".velocity-skew", "skewX", "deg");
+
       gsap.to(".hero-name-wrap", {
         yPercent: -12,
         ease: "none",
-        scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: 1 },
+        scrollTrigger: {
+          trigger: root.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+          onUpdate: () => skewSetter(clamp(velocityBus.value * -0.5, -4, 4)),
+        },
       });
 
       gsap.to(".hero-sub-wrap", {
@@ -163,41 +171,36 @@ export default function Hero({ ready }: Props) {
         scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: 1 },
       });
 
-      const skewSetter = gsap.quickSetter(".velocity-skew", "skewX", "deg");
-      let skew = 0;
-      const tick = () => {
-        const target = clamp(velocityBus.value * -0.5, -4, 4);
-        skew += (target - skew) * 0.08;
-        skewSetter(Math.abs(skew) > 0.04 ? skew : 0);
-        if (Math.abs(skew) <= 0.04) skew = 0;
-      };
-      gsap.ticker.add(tick);
-
       let removeMouse = () => {};
       if (fine) {
         const xTo = gsap.quickTo(".hero-name-wrap", "x", { duration: 0.8, ease: "power3.out" });
         const yTo = gsap.quickTo(".hero-name-wrap", "y", { duration: 0.8, ease: "power3.out" });
+        let rect = root.current!.getBoundingClientRect();
+        const refreshRect = () => {
+          rect = root.current!.getBoundingClientRect();
+        };
         const onMouse = (e: MouseEvent) => {
-          const r = root.current!.getBoundingClientRect();
-          const nx = (e.clientX - r.left) / r.width - 0.5;
-          const ny = (e.clientY - r.top) / r.height - 0.5;
+          const nx = (e.clientX - rect.left) / rect.width - 0.5;
+          const ny = (e.clientY - rect.top) / rect.height - 0.5;
           xTo(nx * 14);
           yTo(ny * 10);
         };
+        const onEnter = () => refreshRect();
         const onLeave = () => {
           xTo(0);
           yTo(0);
         };
+        root.current!.addEventListener("mouseenter", onEnter);
         root.current!.addEventListener("mousemove", onMouse, { passive: true });
         root.current!.addEventListener("mouseleave", onLeave);
         removeMouse = () => {
+          root.current?.removeEventListener("mouseenter", onEnter);
           root.current?.removeEventListener("mousemove", onMouse);
           root.current?.removeEventListener("mouseleave", onLeave);
         };
       }
 
       return () => {
-        gsap.ticker.remove(tick);
         removeMouse();
       };
     }, root);
@@ -228,6 +231,9 @@ export default function Hero({ ready }: Props) {
         <img
           src="/arish_mono.png"
           alt="Portrait of Arish K"
+          width="485"
+          height="514"
+          fetchPriority="high"
           className="w-full h-full block"
           style={{
             // objectFit: contain ensures the image scales down proportionally
@@ -284,17 +290,6 @@ export default function Hero({ ready }: Props) {
         </h1>
 
         <div className="hero-sub-wrap mt-5 md:mt-7">
-          {/*
-            AI ENGINEER / AI & DATA SCIENCE
-            ────────────────────────────────
-            Monospace: IBM Plex Mono — uppercase, wide tracking, small size.
-            Contrasts strongly against the heavy italic headline above.
-          */}
-          <div className="mask-line">
-            <p className="hero-role-inner font-mono text-[clamp(0.72rem,1.9vw,1.15rem)] uppercase tracking-[0.3em] text-[#77736B]">
-              AI ENGINEER <span className="opacity-35 mx-1">/</span> AI &amp; DATA SCIENCE
-            </p>
-          </div>
 
           {/*
             I BUILD SYSTEMS.
