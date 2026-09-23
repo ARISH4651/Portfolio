@@ -92,7 +92,7 @@ export const projects: Tier1Project[] = [
   {
     index: "06",
     titleA: "DESKTOP ASSISTANT",
-    titleB: "“ASTRA”",
+    titleB: "“Seven”",
     category: "Local AI / Desktop Engineering",
     role: "Local-First Architecture · Voice & Automation",
     description:
